@@ -54,11 +54,8 @@ More diagrams (system overview, per-stage components, auth and tool flows) live 
 
 This template is agent-agnostic. To add a new agent, copy the sample, update config, and deploy — no infrastructure changes required. See the Agent Runtime README for the exact steps.
 
-## Contributing and releases
+## Contributing, Releases, and License
 
-- Contributing guidelines, standards, and deeper implementation details live in `CONTRIBUTING.md`.
-- Release process and checklists live in `RELEASE.md`.
-
-## License
-
-[Your License Here]
+- Contributing guidelines, standards, and deeper implementation details live in [`CONTRIBUTING.md`](./CONTRIBUTING.md).
+- Release process and checklists live in [`RELEASE.md`](./RELEASE.md).
+- This project is open sourced under the [MIT License](./LICENSE).

@@ -3,13 +3,14 @@
 
 [project]
 name = "aws-agentcore-enterprise-toolkit"
-version = "0.1.0"
-description = "Enterprise-grade infrastructure toolkit for building Amazon Bedrock AgentCore agents"
+version = "0.1.1"
+description = "Enterprise-grade infrastructure toolkit for building Amazon Bedrock AgentCore agents."
 readme = "README.md"
 requires-python = ">=3.13"
-license = { text = "Apache-2.0" }
+license = { text = "MIT" }
 authors = [
-    { name = "AWS", email = "aws@amazon.com" }
+    { name = "AWS", email = "aws@amazon.com" },
+    { name = "Anton Kornienko", email = "anton.kornienko@nlplogix.com" },
 ]
 
 # Workspace-level shared dependencies
@@ -53,9 +54,9 @@ dev = [
 
 [tool.uv.workspace]
 members = [
-    "packages/*",        # Shared libraries
-    "agents/*",          # Agent implementations
-    "services/frontend_streamlit",        # Frontend applications (Streamlit UI)
+    "packages/*",                  # Shared libraries
+    "agents/*",                    # Agent implementations
+    "services/frontend_streamlit", # Frontend applications (Streamlit UI)
 ]
 
 [tool.uv.sources]
@@ -82,7 +83,7 @@ select = [
     "SIM", # flake8-simplify
 ]
 ignore = [
-    "E501",  # line too long (handled by formatter)
+    "E501", # line too long (handled by formatter)
 ]
 
 [tool.ruff.format]
@@ -95,7 +96,7 @@ skip-magic-trailing-comma = false
 python_version = "3.13"
 warn_return_any = true
 warn_unused_configs = true
-disallow_untyped_defs = false  # Gradual typing
+disallow_untyped_defs = false    # Gradual typing
 disallow_incomplete_defs = false
 check_untyped_defs = true
 ignore_missing_imports = true
