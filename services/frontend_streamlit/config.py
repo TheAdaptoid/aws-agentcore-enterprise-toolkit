@@ -71,7 +71,9 @@ def get_ssm_parameter(parameter_name: str, with_decryption: bool = False) -> str
     """
     try:
         ssm = boto3.client("ssm")
-        response = ssm.get_parameter(Name=parameter_name, WithDecryption=with_decryption)
+        response: dict[str, dict[str, str]] = ssm.get_parameter(
+            Name=parameter_name, WithDecryption=with_decryption
+        )
         return response["Parameter"]["Value"]
     except ClientError as e:
         error_code = e.response["Error"]["Code"]
