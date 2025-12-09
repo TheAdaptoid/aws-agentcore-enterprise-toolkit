@@ -7,10 +7,12 @@ from typing import Any
 
 import requests
 
+from services.frontend_streamlit.runtime_client_base import AgentResponse, RuntimeClient
+
 logger = logging.getLogger(__name__)
 
 
-class LocalRuntimeClient:
+class LocalRuntimeClient(RuntimeClient):
     """Client for invoking local agent runtime server."""
 
     def __init__(
@@ -24,17 +26,16 @@ class LocalRuntimeClient:
             runtime_name: Name of the agent (for logging)
             base_url: Base URL of the local runtime server
         """
-        self.runtime_name = runtime_name
         self.base_url = base_url
         self.invoke_url = f"{base_url}/invoke"
-        logger.info(f"Initialized local runtime client: {self.invoke_url}")
+        super().__init__(runtime_name=runtime_name)
 
     def invoke_agent(
         self,
         message: str,
         user_id: str,
         session_id: str,
-    ) -> dict[str, Any]:
+    ) -> AgentResponse:
         """Invoke the local agent runtime.
 
         Args:
@@ -43,7 +44,8 @@ class LocalRuntimeClient:
             session_id: Conversation session ID
 
         Returns:
-            Agent response dictionary with 'output' field
+            An AgentResponse containing the session_id, the user_id,
+            and the agent's message
 
         Raises:
             RuntimeError: If runtime invocation fails
@@ -68,18 +70,18 @@ class LocalRuntimeClient:
                     f"Local runtime returned status {response.status_code}: {response.text}"
                 )
 
-            result = response.json()
+            result: dict[str, Any] = response.json()
 
             if result.get("status") == "error":
                 raise RuntimeError(f"Runtime error: {result.get('error')}")
 
             logger.info("Local runtime invocation successful")
 
-            return {
-                "output": result.get("output", ""),
-                "session_id": session_id,
-                "user_id": user_id,
-            }
+            return AgentResponse(
+                message=result.get("output"),
+                session_id=session_id,
+                user_id=user_id,
+            )
 
         except requests.exceptions.ConnectionError as err:
             raise RuntimeError(
@@ -93,19 +95,3 @@ class LocalRuntimeClient:
         except Exception as e:
             logger.error(f"Unexpected error during local runtime invocation: {e}")
             raise RuntimeError(f"Unexpected error: {e}") from e
-
-
-def get_local_runtime_client(
-    runtime_name: str = "warranty-docs",
-    base_url: str = "http://localhost:8000",
-) -> LocalRuntimeClient:
-    """Factory function to create a LocalRuntimeClient.
-
-    Args:
-        runtime_name: Name of the agent
-        base_url: Base URL of the local runtime server
-
-    Returns:
-        Configured LocalRuntimeClient instance
-    """
-    return LocalRuntimeClient(runtime_name=runtime_name, base_url=base_url)

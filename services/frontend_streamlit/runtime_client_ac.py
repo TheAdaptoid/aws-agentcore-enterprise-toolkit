@@ -6,14 +6,14 @@ import logging
 from typing import Any
 
 import requests
-import streamlit as st
 
 from services.frontend_streamlit.config import load_config
+from services.frontend_streamlit.runtime_client_base import AgentResponse, RuntimeClient
 
 logger = logging.getLogger(__name__)
 
 
-class AgentCoreRuntimeClient:
+class AgentCoreRuntimeClient(RuntimeClient):
     """Client for invoking AgentCore Runtime via Frontend Gateway."""
 
     def __init__(
@@ -25,15 +25,14 @@ class AgentCoreRuntimeClient:
         Args:
             runtime_name: Name of the AgentCore runtime
         """
-        self.runtime_name = runtime_name
-        logger.info(f"Initialized runtime client for agent: {runtime_name}")
+        super().__init__(runtime_name=runtime_name)
 
     def invoke_agent(
         self,
         message: str,
         user_id: str,
         session_id: str,
-    ) -> dict[str, Any]:
+    ) -> AgentResponse:
         """Invoke the AgentCore Runtime via Gateway.
 
         Args:
@@ -42,7 +41,8 @@ class AgentCoreRuntimeClient:
             session_id: Conversation session ID
 
         Returns:
-            Agent response dictionary with 'output' field
+            An AgentResponse containing the session_id, the user_id,
+            and the agent's message
 
         Raises:
             RuntimeError: If invocation fails
@@ -79,34 +79,13 @@ class AgentCoreRuntimeClient:
 
             response.raise_for_status()
 
-            data = response.json()
-            return {
-                "output": data.get("output", ""),
-                "session_id": data.get("sessionId", session_id),
-                "user_id": data.get("userId", user_id),
-            }
+            data: dict[str, Any] = response.json()
+            return AgentResponse(
+                session_id=data.get("sessionId", session_id),
+                user_id=data.get("userId", user_id),
+                message=data.get("output"),
+            )
 
         except requests.exceptions.RequestException as e:
             logger.error(f"Gateway invocation failed: {e}")
             raise RuntimeError(f"Failed to invoke agent: {e}") from e
-
-
-def get_runtime_client(
-    runtime_name: str | None = None,
-    runtime_arn: str | None = None,  # noqa: ARG001 - Deprecated, kept for compatibility
-) -> AgentCoreRuntimeClient:
-    """Factory function to create an AgentCoreRuntimeClient.
-
-    Args:
-        runtime_name: Name of the AgentCore runtime (if None, reads from session state)
-        runtime_arn: Ignored
-
-    Returns:
-        Configured AgentCoreRuntimeClient instance
-    """
-    # Read selected agent from session state if not provided
-    if runtime_name is None:
-        runtime_name = st.session_state.get("selected_agent", "customer-support")
-        logger.info(f"Using selected agent from session state: {runtime_name}")
-
-    return AgentCoreRuntimeClient(runtime_name=runtime_name)

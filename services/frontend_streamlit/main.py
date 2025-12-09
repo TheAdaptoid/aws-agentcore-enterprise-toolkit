@@ -37,8 +37,11 @@ from services.frontend_streamlit.oauth_state import (  # noqa: E402
     decode_oauth_state,
     encode_oauth_state,
 )
-from services.frontend_streamlit.runtime_client import get_runtime_client  # noqa: E402
-from services.frontend_streamlit.runtime_client_local import get_local_runtime_client  # noqa: E402
+from services.frontend_streamlit.runtime_client_base import (  # noqa: E402
+    AgentResponse,
+    RuntimeClient,
+)
+from services.frontend_streamlit.runtime_factory import get_runtime_client  # noqa: E402
 from services.frontend_streamlit.session import (  # noqa: E402
     add_message,
     ensure_agent_session,
@@ -117,7 +120,7 @@ def fetch_agents(
         response = requests.get(url, headers=headers, timeout=5)
         response.raise_for_status()
 
-        data = response.json()
+        data: dict[str, list] = response.json()
         return data.get("agents", [])
     except requests.exceptions.RequestException as e:
         logger.error(f"Failed to fetch agents from Gateway: {e}", exc_info=True)
@@ -450,22 +453,23 @@ def handle_message_send(payload: dict[str, str]) -> None:
     # Get agent response
     try:
         # Use local or remote runtime client based on mode
+        client: RuntimeClient
         if LOCAL_MODE:
-            client = get_local_runtime_client(
+            client = get_runtime_client(
                 runtime_name=agent_id,
-                base_url=LOCAL_RUNTIME_URL,
+                modality="local",
+                config={"base_url": LOCAL_RUNTIME_URL},
             )
         else:
-            client = get_runtime_client(runtime_name=agent_id)
+            client = get_runtime_client(runtime_name=agent_id, modality="agentcore")
 
-        response = client.invoke_agent(
+        response: AgentResponse = client.invoke_agent(
             message=message,
             user_id=state.user_id,
             session_id=get_session_id(agent_id),
         )
 
-        agent_message = response.get("output", "No response from agent")
-        add_message(agent_id, "assistant", agent_message)
+        add_message(agent_id, "assistant", response.message)
 
     except RuntimeError as e:
         error_msg = str(e)
