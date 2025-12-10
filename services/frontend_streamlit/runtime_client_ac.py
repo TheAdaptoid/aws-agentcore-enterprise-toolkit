@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import logging
-from typing import Any
 
 import requests
 
@@ -79,11 +78,11 @@ class AgentCoreRuntimeClient(RuntimeClient):
 
             response.raise_for_status()
 
-            data: dict[str, Any] = response.json()
+            data: dict[str, str] = response.json()
             return AgentResponse(
                 session_id=data.get("sessionId", session_id),
                 user_id=data.get("userId", user_id),
-                message=data.get("output"),
+                message=data.get("output", "No response from agent"),
             )
 
         except requests.exceptions.RequestException as e:

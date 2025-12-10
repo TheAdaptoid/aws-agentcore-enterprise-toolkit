@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import logging
-from typing import Any
 
 import requests
 
@@ -70,7 +69,7 @@ class LocalRuntimeClient(RuntimeClient):
                     f"Local runtime returned status {response.status_code}: {response.text}"
                 )
 
-            result: dict[str, Any] = response.json()
+            result: dict[str, str] = response.json()
 
             if result.get("status") == "error":
                 raise RuntimeError(f"Runtime error: {result.get('error')}")
@@ -78,7 +77,7 @@ class LocalRuntimeClient(RuntimeClient):
             logger.info("Local runtime invocation successful")
 
             return AgentResponse(
-                message=result.get("output"),
+                message=result.get("output", "No response from agent"),
                 session_id=session_id,
                 user_id=user_id,
             )

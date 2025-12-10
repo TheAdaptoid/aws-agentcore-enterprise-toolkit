@@ -50,4 +50,4 @@ def get_runtime_client(
     elif modality == "agentcore":
         return AgentCoreRuntimeClient(runtime_name=runtime_name)
     else:
-        raise ValueError(f"Unsupported runtime method: {modality}")
+        raise ValueError(f"Unsupported runtime modality: {modality}")
